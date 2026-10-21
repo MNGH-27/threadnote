@@ -1,0 +1,926 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+.workspace-error {
+  position: absolute;
+  top: 54px;
+  left: 12px;
+  right: 12px;
+  z-index: 90;
+  padding: 12px;
+  border-radius: 12px;
+  background: #512a30;
+  color: #fecaca;
+  font-size: 12px;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+}
+body {
+  font-family: "Segoe UI Variable", "Segoe UI", Tahoma, sans-serif;
+}
+.google-connection-health {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid #ffffff12;
+  border-radius: 12px;
+  font-size: 11px;
+}
+.google-connection-health p {
+  margin-top: 6px;
+  color: #a1a1aa;
+  line-height: 1.7;
+  font-size: 10px;
+}
+.google-health-row {
+  padding: 12px 0;
+  border-top: 1px solid #ffffff0d;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+button,
+header {
+  -webkit-user-select: none;
+  user-select: none;
+}
+html.canvas-gesturing,
+html.canvas-gesturing * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  cursor: grabbing !important;
+}
+html.canvas-gesturing[data-canvas-action="resize"],
+html.canvas-gesturing[data-canvas-action="resize"] * {
+  cursor: nwse-resize !important;
+}
+::selection {
+  background: rgba(96, 165, 250, 0.28);
+}
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@layer components {
+  .widget-shell {
+    @apply relative h-screen w-screen overflow-hidden rounded-[20px] border border-white/[.09] bg-[#18191d] text-zinc-100 shadow-2xl shadow-black/60;
+  }
+  .widget-content {
+    @apply absolute inset-0 overflow-hidden;
+  }
+  .accent-line {
+    @apply pointer-events-none absolute left-0 right-0 top-0 z-[65] h-1 transition-colors duration-300;
+  }
+  .window-chrome {
+    @apply absolute left-0 right-0 top-0 z-[60];
+    height: 18px;
+  }
+  .chrome-peek {
+    @apply absolute left-1/2 top-1 z-10 grid h-3 w-16 -translate-x-1/2 place-items-center rounded-full bg-transparent;
+  }
+  .chrome-peek > span {
+    @apply h-[3px] w-8 rounded-full bg-zinc-400/35 transition-colors;
+  }
+  .chrome-peek:hover > span,
+  .chrome-peek:focus-visible > span {
+    @apply bg-zinc-300/80;
+  }
+  .widget-header {
+    @apply absolute left-2 right-2 top-3 flex h-9 cursor-grab items-center gap-2 rounded-xl border border-white/[.08] bg-[#25262b]/95 px-2 shadow-lg backdrop-blur-xl active:cursor-grabbing;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-6px);
+    transition:
+      opacity 0.15s ease,
+      transform 0.15s ease,
+      visibility 0.15s;
+  }
+  .window-note-dot {
+    @apply size-2 shrink-0 rounded-full;
+  }
+  .window-note-title {
+    @apply min-w-0 flex-1 truncate text-[10px] font-medium text-zinc-400;
+  }
+  .window-actions {
+    @apply ml-auto flex shrink-0 items-center gap-0.5;
+  }
+  .window-close:hover {
+    @apply bg-red-500/10 text-red-300;
+  }
+  .window-chrome:hover,
+  .window-chrome:focus-within,
+  .chrome-forced-open .window-chrome,
+  .widget-shell:has(.canvas-toolbar:hover, .canvas-toolbar:focus-within, .canvas-toolbar.is-open)
+    .window-chrome {
+    height: 96px;
+  }
+  .window-chrome:hover .widget-header,
+  .window-chrome:focus-within .widget-header,
+  .chrome-forced-open .widget-header,
+  .widget-shell:has(.canvas-toolbar:hover, .canvas-toolbar:focus-within, .canvas-toolbar.is-open)
+    .widget-header {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  .icon-button {
+    @apply grid size-7 shrink-0 place-items-center rounded-lg text-zinc-500 transition hover:bg-white/[.07] hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-30;
+  }
+  .icon-button.accent {
+    @apply bg-blue-500/15 text-blue-300 hover:bg-blue-500/25;
+  }
+  .icon-button.add-top {
+    @apply mr-1 bg-white/[.07] text-zinc-200 hover:bg-white/[.12];
+  }
+  .field {
+    @apply h-10 w-full rounded-xl border border-white/[.07] bg-black/20 px-3 text-xs text-zinc-200 outline-none transition placeholder:text-zinc-700 focus:border-blue-400/50;
+  }
+  textarea.field {
+    @apply py-3;
+  }
+  .ltr {
+    direction: ltr;
+    text-align: left;
+  }
+  .error-box {
+    @apply rounded-xl bg-red-500/10 p-2 text-[9px] leading-4 text-red-300;
+  }
+  .google-button {
+    @apply mx-auto flex h-9 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white px-4 text-[11px] font-semibold text-zinc-800 transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .google-g {
+    @apply grid size-4 place-items-center rounded-full text-xs font-bold text-blue-600;
+  }
+  .settings-card {
+    @apply flex items-center justify-between rounded-2xl border border-white/[.06] bg-white/[.025] p-4;
+  }
+  .settings-card p {
+    @apply text-xs text-zinc-200;
+  }
+  .settings-card span {
+    @apply mt-1 block text-[10px] text-zinc-600;
+  }
+  .toggle {
+    @apply relative h-6 w-10 rounded-full bg-zinc-700 transition;
+  }
+  .toggle > span {
+    @apply absolute left-1 top-1 size-4 rounded-full bg-zinc-300 transition;
+  }
+  .toggle.on {
+    @apply bg-blue-500;
+  }
+  .toggle.on > span {
+    transform: translateX(16px);
+  }
+
+  .canvas-viewport {
+    @apply relative h-full w-full touch-none overflow-hidden bg-[#18191d];
+    user-select: none;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.075) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .canvas-viewport input,
+  .canvas-viewport textarea {
+    user-select: text;
+  }
+  .canvas-viewport.is-gesturing {
+    cursor: grabbing;
+  }
+  .canvas-plane {
+    @apply absolute left-0 top-0 h-[1400px] w-[1900px];
+    transform-origin: 0 0;
+    will-change: transform;
+  }
+  .canvas-card {
+    @apply absolute z-10 flex flex-col overflow-hidden rounded-2xl border border-white/[.085] bg-[#202126] shadow-xl shadow-black/30;
+  }
+  .canvas-card-active {
+    @apply z-20 border-white/20;
+  }
+  .canvas-card-connecting {
+    @apply ring-1 ring-blue-400/70;
+  }
+  .canvas-card-fullscreen {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .fullscreen-layer {
+    @apply pointer-events-none absolute inset-0 z-40 hidden bg-[#202126];
+  }
+  .fullscreen-layer.is-open {
+    @apply pointer-events-auto block;
+  }
+  .canvas-card-fullscreen .canvas-card-header {
+    @apply h-12 cursor-default;
+  }
+  .canvas-card-fullscreen .section-content {
+    @apply overflow-auto;
+  }
+  .canvas-card-header {
+    @apply flex h-11 shrink-0 cursor-grab touch-none items-center gap-2 border-b border-white/[.05] px-3 active:cursor-grabbing;
+  }
+  .canvas-card-header > strong {
+    @apply min-w-0 flex-1 truncate text-[11px] font-medium text-zinc-300;
+  }
+  .card-actions {
+    @apply flex shrink-0 items-center gap-0.5;
+  }
+  .card-grip {
+    @apply shrink-0 text-zinc-600;
+  }
+  .root-card-icon {
+    @apply grid size-7 shrink-0 place-items-center rounded-lg bg-amber-400/10 text-amber-300;
+  }
+  .section-type-icon {
+    @apply grid size-7 shrink-0 place-items-center rounded-lg;
+  }
+  .card-delete:hover {
+    @apply bg-red-500/10 text-red-300;
+  }
+  .section-action.is-connecting {
+    @apply bg-blue-500/20 text-blue-300;
+  }
+  .canvas-toolbar {
+    @apply absolute left-2 top-[54px] z-[61] flex h-8 max-w-[calc(100%-16px)] items-center gap-0.5 rounded-xl border border-white/[.08] bg-[#24252a]/95 px-1 shadow-xl backdrop-blur-xl;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-6px);
+    transition:
+      opacity 0.15s ease,
+      transform 0.15s ease,
+      visibility 0.15s;
+  }
+  .canvas-toolbar > button {
+    @apply grid size-7 shrink-0 place-items-center rounded-lg text-zinc-500 transition hover:bg-white/[.06] hover:text-zinc-200;
+  }
+  .widget-shell:has(.window-chrome:hover, .window-chrome:focus-within) .canvas-toolbar,
+  .chrome-forced-open .canvas-toolbar,
+  .canvas-toolbar:hover,
+  .canvas-toolbar:focus-within,
+  .canvas-toolbar.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  .canvas-toolbar .zoom-value {
+    @apply w-11 text-[9px];
+  }
+  .canvas-toolbar-divider {
+    @apply mx-1 h-5 w-px bg-white/[.07];
+  }
+  .canvas-help {
+    @apply pointer-events-none absolute bottom-2 left-1/2 z-20 flex max-w-[95%] -translate-x-1/2 items-center gap-2 truncate rounded-lg bg-black/50 px-2 py-1 text-[9px] text-zinc-500 backdrop-blur;
+  }
+  .canvas-help.is-connecting {
+    @apply text-blue-300;
+  }
+  .note-editor {
+    @apply flex h-full min-h-0 flex-col px-5 pb-4 pt-4;
+  }
+  .note-canvas-card {
+    @apply border-white/[.11];
+  }
+  .note-title {
+    @apply w-full shrink-0 bg-transparent text-lg font-semibold text-zinc-100 outline-none placeholder:text-zinc-700;
+  }
+  .note-body {
+    @apply mt-3 min-h-20 w-full flex-1 resize-none bg-transparent text-[13px] leading-7 text-zinc-300 outline-none placeholder:text-zinc-700;
+  }
+  .color-row {
+    @apply mt-4 flex gap-3;
+  }
+  .color-row button {
+    @apply size-3 rounded-full opacity-45 transition hover:scale-110 hover:opacity-100;
+  }
+  .color-row button.active {
+    @apply scale-110 opacity-100 ring-2 ring-white ring-offset-2 ring-offset-[#1b1c20];
+  }
+  .add-section-button {
+    @apply flex h-7 items-center justify-center gap-1.5 rounded-lg px-2 text-[10px] text-zinc-400 transition hover:bg-white/[.06] hover:text-zinc-200;
+  }
+  .section-picker {
+    @apply absolute left-0 top-9 z-30 grid grid-cols-2 gap-1 overflow-y-auto rounded-2xl border border-white/10 bg-[#26272c] p-1.5 shadow-2xl;
+    width: min(320px, calc(100vw - 24px));
+    max-height: calc(100dvh - 106px);
+    overscroll-behavior: contain;
+  }
+  .section-picker > button {
+    @apply flex min-w-0 items-center gap-2 rounded-xl p-2 text-left transition hover:bg-white/[.05];
+  }
+  .section-picker > button > span:last-child {
+    @apply min-w-0;
+  }
+  .section-picker strong {
+    @apply block text-[11px] font-medium text-zinc-200;
+  }
+  .section-picker small {
+    @apply mt-0.5 block truncate text-[9px] text-zinc-600;
+  }
+  .section-content {
+    @apply min-h-0 min-w-0 flex-1 overflow-y-auto;
+  }
+  .resize-handle {
+    @apply absolute bottom-0 right-0 z-30 flex cursor-nwse-resize touch-none items-center justify-center rounded-tl-lg bg-[#292b32] text-zinc-400 transition-colors hover:bg-blue-500/20 hover:text-blue-300;
+  }
+  .window-resize-edge {
+    position: absolute;
+    z-index: 90;
+    background: transparent;
+    touch-action: none;
+  }
+  .card-resize-edge {
+    position: absolute;
+    z-index: 31;
+    background: transparent;
+    touch-action: none;
+    user-select: none;
+  }
+  .card-resize-North,
+  .card-resize-South {
+    left: var(--resize-corner);
+    right: var(--resize-corner);
+    height: var(--resize-edge);
+    cursor: ns-resize;
+  }
+  .card-resize-North {
+    top: 0;
+  }
+  .card-resize-South {
+    bottom: 0;
+    right: calc(var(--resize-corner) * 1.75);
+  }
+  .card-resize-West,
+  .card-resize-East {
+    top: var(--resize-corner);
+    bottom: var(--resize-corner);
+    width: var(--resize-edge);
+    cursor: ew-resize;
+  }
+  .card-resize-West {
+    left: 0;
+  }
+  .card-resize-East {
+    right: 0;
+    bottom: calc(var(--resize-corner) * 1.75);
+  }
+  .card-resize-NorthWest,
+  .card-resize-NorthEast,
+  .card-resize-SouthWest,
+  .card-resize-SouthEast {
+    z-index: 32;
+    width: var(--resize-corner);
+    height: var(--resize-corner);
+  }
+  .card-resize-NorthWest {
+    left: 0;
+    top: 0;
+    cursor: nwse-resize;
+    clip-path: polygon(
+      0 0,
+      100% 0,
+      100% var(--resize-edge),
+      var(--resize-edge) var(--resize-edge),
+      var(--resize-edge) 100%,
+      0 100%
+    );
+  }
+  .card-resize-NorthEast {
+    right: 0;
+    top: 0;
+    cursor: nesw-resize;
+    clip-path: polygon(
+      0 0,
+      100% 0,
+      100% 100%,
+      calc(100% - var(--resize-edge)) 100%,
+      calc(100% - var(--resize-edge)) var(--resize-edge),
+      0 var(--resize-edge)
+    );
+  }
+  .card-resize-SouthWest {
+    left: 0;
+    bottom: 0;
+    cursor: nesw-resize;
+    clip-path: polygon(
+      0 0,
+      var(--resize-edge) 0,
+      var(--resize-edge) calc(100% - var(--resize-edge)),
+      100% calc(100% - var(--resize-edge)),
+      100% 100%,
+      0 100%
+    );
+  }
+  .card-resize-SouthEast {
+    right: 0;
+    bottom: 0;
+    cursor: nwse-resize;
+    background: #292b32;
+  }
+  .window-resize-North {
+    top: 0;
+    left: 16px;
+    right: 16px;
+    height: 8px;
+    cursor: ns-resize;
+  }
+  .window-resize-South {
+    bottom: 0;
+    left: 16px;
+    right: 28px;
+    height: 8px;
+    cursor: ns-resize;
+  }
+  .window-resize-East {
+    right: 0;
+    top: 16px;
+    bottom: 28px;
+    width: 8px;
+    cursor: ew-resize;
+  }
+  .window-resize-West {
+    left: 0;
+    top: 16px;
+    bottom: 16px;
+    width: 8px;
+    cursor: ew-resize;
+  }
+  .window-resize-NorthWest {
+    left: 0;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    cursor: nwse-resize;
+  }
+  .window-resize-NorthEast {
+    right: 0;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    cursor: nesw-resize;
+  }
+  .window-resize-SouthWest {
+    left: 0;
+    bottom: 0;
+    width: 20px;
+    height: 20px;
+    cursor: nesw-resize;
+  }
+  .window-resize-corner {
+    @apply absolute bottom-0 right-0 z-[90] grid size-7 cursor-nwse-resize touch-none place-items-center rounded-tl-lg bg-[#25272d] text-zinc-400 hover:bg-blue-500/20 hover:text-blue-300;
+  }
+  .connection-layer {
+    @apply pointer-events-none absolute inset-0 z-0 h-full w-full overflow-visible;
+  }
+  .connection-line {
+    pointer-events: none;
+    fill: none;
+    stroke: rgba(96, 165, 250, 0.85);
+    stroke-width: 2;
+  }
+  .connection-port {
+    fill: #60a5fa;
+  }
+  .connection-hit {
+    pointer-events: stroke;
+    fill: none;
+    stroke: transparent;
+    stroke-width: 14;
+    cursor: pointer;
+  }
+  .connection-layer marker path {
+    fill: rgba(96, 165, 250, 0.9);
+  }
+  .section-action {
+    @apply grid size-7 shrink-0 place-items-center rounded-lg text-zinc-600 transition hover:bg-white/[.06] hover:text-zinc-300;
+  }
+  .section-toolbar {
+    @apply flex h-9 items-center justify-between border-b border-white/[.04] px-3 text-[9px] text-zinc-600;
+  }
+  .section-list {
+    @apply max-h-64 overflow-y-auto;
+  }
+
+  .compact-mail {
+    @apply flex w-full items-center gap-2 border-b border-white/[.035] px-3 py-2.5 transition last:border-0 hover:bg-white/[.025];
+  }
+  .compact-mail strong {
+    @apply block truncate text-[10px] font-medium text-zinc-300;
+  }
+  .compact-mail span span {
+    @apply mt-0.5 block truncate text-[10px] text-zinc-500;
+  }
+  .compact-mail small {
+    @apply shrink-0 text-[8px] text-zinc-700;
+  }
+  .task-composer {
+    @apply border-b border-white/[.04] p-3;
+  }
+  .google-sync-hint {
+    @apply flex w-full items-center justify-center gap-2 border-b border-white/[.04] bg-blue-500/[.06] py-2 text-[9px] text-blue-300 disabled:text-amber-300;
+  }
+  .compact-task {
+    @apply flex items-start gap-2 border-b border-white/[.035] px-3 py-2.5 last:border-0;
+  }
+  .compact-task p {
+    @apply text-[11px];
+  }
+  .compact-task small {
+    @apply mt-1 block line-clamp-2 text-[9px] text-zinc-600;
+  }
+  .task-check {
+    @apply mt-0.5 grid size-4 shrink-0 place-items-center rounded-full border border-zinc-600 text-zinc-950;
+  }
+  .task-check.done {
+    @apply border-emerald-400 bg-emerald-400;
+  }
+
+  .mindmap {
+    @apply p-3;
+  }
+  .mind-center {
+    @apply mx-auto block w-3/4 rounded-2xl border border-violet-400/25 bg-violet-500/10 px-3 py-2 text-center text-[11px] text-violet-200 outline-none focus:border-violet-400/60;
+  }
+  .mind-nodes {
+    @apply relative my-4 grid grid-cols-2 gap-2 before:absolute before:bottom-0 before:left-1/2 before:top-0 before:w-px before:bg-violet-400/15;
+  }
+  .mind-node {
+    @apply relative z-10 flex items-center rounded-xl border border-white/[.06] bg-[#202126] px-2;
+  }
+  .mind-node input {
+    @apply min-w-0 flex-1 bg-transparent py-2 text-[10px] text-zinc-300 outline-none;
+  }
+  .mind-node button {
+    @apply text-zinc-700 hover:text-red-300;
+  }
+  .image-section {
+    @apply p-3;
+  }
+  .image-section img {
+    @apply max-h-72 w-full rounded-xl object-contain;
+  }
+  .image-drop {
+    @apply flex min-h-32 w-full flex-col items-center justify-center rounded-xl border border-dashed border-white/10 text-zinc-600 transition hover:border-rose-400/30 hover:bg-rose-400/[.03] hover:text-rose-300;
+  }
+  .image-drop strong {
+    @apply mt-2 text-[11px] font-medium;
+  }
+  .image-drop small {
+    @apply mt-1 text-[8px] text-zinc-700;
+  }
+  .soft-button {
+    @apply h-9 shrink-0 rounded-xl bg-white/[.065] px-3 text-[10px] text-zinc-300 transition hover:bg-white/[.1];
+  }
+  .text-note-section {
+    @apply flex h-full min-h-0 flex-col p-4;
+  }
+  .text-note-section input {
+    @apply shrink-0 bg-transparent text-sm font-semibold text-zinc-200 outline-none placeholder:text-zinc-700;
+  }
+  .text-note-section textarea {
+    @apply mt-3 min-h-0 flex-1 resize-none bg-transparent text-xs leading-6 text-zinc-400 outline-none placeholder:text-zinc-700;
+  }
+  .site-section {
+    @apply flex h-full min-h-0 flex-col gap-2 p-3 pb-8;
+  }
+  .site-address-bar {
+    @apply flex shrink-0 gap-2;
+  }
+  .site-address-bar input {
+    @apply h-9 min-w-0 flex-1;
+  }
+  .site-controls {
+    @apply flex shrink-0 items-center gap-1 text-[10px] text-zinc-500;
+  }
+  .site-controls > span {
+    @apply ml-auto;
+  }
+  .site-controls button {
+    @apply grid h-6 min-w-6 place-items-center rounded-md px-1 text-zinc-400 hover:bg-white/[.07] hover:text-zinc-200;
+  }
+  .native-site-host {
+    @apply relative min-h-0 flex-1 overflow-hidden rounded-lg border border-white/[.08] bg-[#18191d];
+  }
+  .native-site-placeholder {
+    @apply absolute inset-0 flex flex-col items-center justify-center gap-3 overflow-hidden p-4 text-center text-[11px] text-zinc-600;
+  }
+  .native-site-placeholder small {
+    @apply max-w-full break-all text-[9px] text-red-300;
+  }
+  .canvas-card-fullscreen .image-section img {
+    max-height: calc(100vh - 160px);
+  }
+  .delete-backdrop {
+    @apply absolute inset-0 z-[70] grid place-items-center bg-black/60 p-4 backdrop-blur-sm;
+  }
+  .delete-dialog {
+    @apply w-full max-w-sm rounded-2xl border border-white/10 bg-[#25262b] p-5 text-left shadow-2xl;
+  }
+  .delete-dialog-icon {
+    @apply mb-3 grid size-10 place-items-center rounded-xl bg-red-500/10 text-red-300;
+  }
+  .delete-dialog h2 {
+    @apply text-sm font-semibold text-zinc-100;
+  }
+  .delete-dialog p {
+    @apply mt-2 text-xs leading-6 text-zinc-400;
+  }
+  .delete-dialog > div {
+    @apply mt-5 flex justify-end gap-2;
+  }
+  .confirm-delete-button {
+    @apply h-9 rounded-xl bg-red-500 px-5 text-xs text-white hover:bg-red-400 disabled:opacity-50;
+  }
+  .canvas-notice {
+    @apply absolute bottom-8 left-3 right-3 z-[80] flex items-center justify-between gap-2 rounded-xl border border-red-400/20 bg-[#36272d] p-3 text-[10px] text-red-200;
+  }
+  .minimap-dock {
+    @apply absolute bottom-2 left-1/2 z-[55] -translate-x-1/2;
+    width: 38px;
+    height: 26px;
+  }
+  .minimap-dock.is-open {
+    width: min(220px, calc(100vw - 56px));
+    height: min(176px, calc(100dvh - 32px));
+  }
+  .minimap-peek {
+    @apply absolute bottom-0 left-1/2 grid h-6 w-9 -translate-x-1/2 place-items-center rounded-full border border-white/[.05] bg-[#25262b]/80 text-zinc-500 shadow-lg backdrop-blur transition hover:text-zinc-200 focus-visible:text-zinc-200;
+  }
+  .minimap-panel {
+    @apply pointer-events-none invisible absolute bottom-8 left-0 right-0 overflow-hidden rounded-xl border border-white/10 bg-[#222328]/95 p-2 opacity-0 shadow-xl backdrop-blur-xl;
+    transform: translateY(4px);
+    transition:
+      opacity 0.15s ease,
+      transform 0.15s ease;
+  }
+  .minimap-dock.is-open .minimap-panel {
+    @apply pointer-events-auto visible opacity-100;
+    transform: translateY(0);
+  }
+  .minimap-heading {
+    @apply mb-1 flex h-5 items-center justify-between text-[9px] text-zinc-500;
+  }
+  .minimap-heading > div {
+    @apply flex gap-1;
+  }
+  .minimap-heading button {
+    @apply grid size-5 place-items-center rounded text-zinc-500 hover:bg-white/[.07] hover:text-zinc-200;
+  }
+  .minimap-svg {
+    @apply block h-[104px] w-full cursor-crosshair touch-none rounded-md bg-[#18191d] outline-none focus-visible:ring-1 focus-visible:ring-sky-400;
+  }
+  .minimap-card {
+    fill-opacity: 0.35;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .minimap-connection {
+    fill: none;
+    stroke: #64748b;
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .minimap-viewport {
+    fill: rgba(56, 189, 248, 0.08);
+    stroke: #7dd3fc;
+    stroke-width: 1.2;
+    vector-effect: non-scaling-stroke;
+  }
+  .settings-panel {
+    @apply absolute inset-0 z-40 flex flex-col bg-[#1b1c20];
+  }
+  .settings-panel-heading {
+    @apply flex h-14 shrink-0 items-center justify-between border-b border-white/[.06] px-4 text-xs;
+  }
+  .settings-panel-content {
+    @apply min-h-0 flex-1 overflow-y-auto p-3;
+  }
+  .quit-app-button {
+    @apply mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 text-[11px] text-red-300;
+  }
+  .google-connect {
+    @apply flex flex-col items-center gap-3 px-4 py-5 text-center;
+  }
+  .google-connect h3 {
+    @apply text-xs font-semibold text-zinc-200;
+  }
+  .google-connect > p {
+    @apply text-[11px] leading-6 text-zinc-500;
+  }
+  .google-connect > small {
+    @apply text-[9px] leading-5 text-zinc-600;
+  }
+  .google-permission-summary {
+    @apply flex flex-wrap justify-center gap-1.5;
+  }
+  .google-permission-summary > span {
+    @apply rounded-md bg-white/[.04] px-2 py-1 text-[9px] text-zinc-500;
+  }
+  .google-connect .google-unavailable {
+    @apply rounded-lg bg-amber-400/10 px-3 py-2 text-[10px] text-amber-200;
+  }
+  .google-connect .google-button {
+    @apply h-10 min-w-44 gap-3 px-4 text-xs font-medium;
+  }
+  .google-cancel {
+    @apply rounded-lg px-3 py-1.5 text-[10px] text-zinc-400 hover:bg-white/[.05];
+  }
+  .google-account-settings {
+    @apply mt-3 rounded-2xl border border-white/[.06] bg-white/[.025] p-4;
+  }
+  .google-account-settings > strong {
+    @apply text-xs font-medium;
+  }
+  .google-account-email {
+    @apply mt-2 truncate text-left text-xs text-zinc-400;
+  }
+  .google-service-badges {
+    @apply my-3 flex flex-wrap gap-2;
+  }
+  .google-service-badges > span {
+    @apply flex items-center gap-1 rounded-md bg-white/[.03] px-2 py-1 text-[9px] text-zinc-600;
+  }
+  .google-service-badges > .is-connected {
+    @apply bg-emerald-400/10 text-emerald-300;
+  }
+  .google-account-actions {
+    @apply my-3 flex flex-wrap gap-2;
+  }
+  .google-account-actions .soft-button {
+    @apply flex items-center justify-center gap-2;
+  }
+  .google-account-settings > small {
+    @apply block text-[9px] leading-5 text-zinc-600;
+  }
+  .google-loading {
+    @apply grid min-h-20 place-items-center text-zinc-500;
+  }
+  .google-empty {
+    @apply flex min-h-28 flex-col items-center justify-center gap-3 p-4 text-center text-[11px] text-zinc-600;
+  }
+  .google-panel-heading {
+    @apply flex min-h-10 items-center gap-1 border-b border-white/[.045] px-3;
+  }
+  .google-panel-heading select {
+    @apply min-w-0 flex-1 rounded-lg bg-[#24252a] py-2 pl-2 pr-1 text-[11px] text-zinc-300 outline-none;
+  }
+  .google-panel-account {
+    @apply min-w-0 flex-1 truncate text-left text-[9px] text-zinc-600;
+  }
+  .google-panel-caption {
+    @apply truncate px-3 py-2 text-left text-[9px] text-zinc-600;
+  }
+  .google-mail-row {
+    @apply flex w-full items-start gap-2 border-b border-white/[.04] p-3 text-left hover:bg-white/[.03];
+  }
+  .google-unread {
+    @apply mt-1.5 size-1.5 shrink-0 rounded-full;
+  }
+  .google-unread.is-unread {
+    @apply bg-blue-400;
+  }
+  .google-mail-summary {
+    @apply block min-w-0 flex-1;
+  }
+  .google-mail-summary strong {
+    @apply block truncate text-[10px] font-medium text-zinc-300;
+  }
+  .google-mail-summary > span {
+    @apply mt-1 block truncate text-[11px] text-zinc-400;
+  }
+  .google-mail-summary > small {
+    @apply mt-1 block truncate text-[9px] text-zinc-600;
+  }
+  .google-mail-row time {
+    @apply whitespace-nowrap text-[8px] text-zinc-600;
+  }
+  .google-mail-reader {
+    @apply p-3;
+  }
+  .google-back {
+    @apply mb-4 flex items-center gap-1 text-[10px] text-blue-300;
+  }
+  .google-mail-reader h3 {
+    @apply break-words text-sm font-medium leading-6 text-zinc-200;
+  }
+  .google-mail-from {
+    @apply mt-2 break-words text-[10px] leading-5 text-zinc-600;
+  }
+  .google-mail-body {
+    @apply mt-4 whitespace-pre-wrap break-words text-[12px] leading-7 text-zinc-300;
+    user-select: text;
+  }
+  .google-calendar-event {
+    @apply flex w-full items-center gap-3 border-b border-white/[.04] px-3 py-3 text-left hover:bg-white/[.03];
+  }
+  .google-event-icon {
+    @apply grid size-8 shrink-0 place-items-center rounded-lg bg-violet-400/10 text-violet-300;
+  }
+  .google-calendar-event > span:nth-child(2) {
+    @apply min-w-0 flex-1;
+  }
+  .google-calendar-event strong {
+    @apply block truncate text-[11px] font-medium text-zinc-300;
+  }
+  .google-calendar-event time {
+    @apply mt-1 block text-[9px] text-zinc-600;
+  }
+  .google-calendar-event > svg {
+    @apply text-zinc-600;
+  }
+  .google-task-composer {
+    @apply grid gap-2 border-b border-white/[.04] p-3;
+  }
+  .google-task-composer > div {
+    @apply flex items-center gap-2;
+  }
+  .google-task-composer .field {
+    @apply h-9 min-w-0 text-[11px];
+  }
+  .google-task-composer textarea.field {
+    @apply min-h-16 resize-none;
+  }
+  .local-tasks-details {
+    @apply border-t border-white/[.06] p-3 text-[10px] text-zinc-500;
+  }
+  .local-tasks-details summary {
+    @apply cursor-pointer;
+  }
+  .local-tasks form {
+    @apply my-3 flex items-center gap-2;
+  }
+  .local-tasks form input {
+    @apply h-9 min-w-0;
+  }
+}
+
+@media (max-width: 360px) {
+  .widget-header {
+    gap: 0.3rem;
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+  }
+  .window-actions {
+    gap: 0;
+  }
+  .add-section-button > span {
+    display: none;
+  }
+  .section-picker small {
+    display: none;
+  }
+  .note-editor {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .mind-nodes {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 420px) {
+  .minimap-dock.is-open {
+    height: 144px;
+    width: 190px;
+  }
+  .minimap-svg {
+    height: 76px;
+  }
+}
