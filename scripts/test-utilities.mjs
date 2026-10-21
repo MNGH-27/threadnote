@@ -24,6 +24,213 @@ const { createInvalidationScheduler } = await loadTypescript(
 const { createSingleFlight } = await loadTypescript("../src/lib/single-flight.ts");
 const { reconcileAutostart } = await loadTypescript("../src/lib/autostart.ts");
 const { createTrayActionHandler } = await loadTypescript("../src/lib/tray-actions.ts");
+const { normalizeMindNodes, layoutMindmap, removeMindNode } =
+  await loadTypescript("../src/lib/mindmap.ts");
+const { taskDay, taskDayLabel, groupTasksByDay } = await loadTypescript("../src/lib/task-days.ts");
+const { createTasksApi } = await loadTypescript("../src/services/google/tasks-api.ts");
+
+test("task day grouping preserves Google date-only days and never mutates source order", () => {
+  assert.equal(taskDay("2026-10-21T00:00:00.000Z"), "2026-10-21");
+  assert.equal(taskDay("2026-02-30"), "");
+  assert.equal(taskDay("invalid"), "");
+  const tasks = [
+    { id: "done", dueDate: "2026-10-21T00:00:00Z", completed: true },
+    { id: "none", dueDate: null, completed: false },
+    { id: "open", dueDate: "2026-10-21", completed: false },
+    { id: "older", dueDate: "2026-10-20", completed: false },
+  ];
+  const groups = groupTasksByDay(tasks);
+  assert.deepEqual(
+    groups.map((g) => g.day),
+    ["2026-10-20", "2026-10-21", ""],
+  );
+  assert.deepEqual(
+    groups[1].tasks.map((t) => t.id),
+    ["open", "done"],
+  );
+  assert.equal(tasks[0].id, "done");
+});
+
+test("task day labels handle month/year rollover using local calendar days", () => {
+  const now = new Date(2026, 11, 31, 23, 59);
+  assert.match(taskDayLabel("2026-12-31", now), /^Today/);
+  assert.match(taskDayLabel("2027-01-01", now), /^Tomorrow/);
+  assert.match(taskDayLabel("2026-12-30", now), /^Yesterday/);
+  assert.equal(taskDayLabel("", now), "No date");
+});
+
+test("Google task edits patch only editable fields, clear date explicitly and escape IDs", async () => {
+  const calls = [];
+  const api = createTasksApi(
+    async (...args) => {
+      calls.push(args);
+      return {};
+    },
+    () => "owner",
+  );
+  await api.updateTask(
+    "list/1",
+    { id: "task?#", status: "completed" },
+    { title: "Updated", description: "Full details", dueDate: "" },
+  );
+  assert.equal(calls[0][0], "PATCH");
+  assert.match(calls[0][1], /list%2F1\/tasks\/task%3F%23$/);
+  assert.deepEqual(calls[0][2], { title: "Updated", notes: "Full details", due: null });
+  assert.equal(calls[0][3], "owner");
+  await api.updateTask(
+    "list",
+    { id: "task", assignmentInfo: { surfaceType: "DOCUMENT" } },
+    { title: "Doc", description: "Restricted", dueDate: "2026-10-21" },
+  );
+  assert.deepEqual(calls[1][2], { title: "Doc", due: "2026-10-21T00:00:00.000Z" });
+});
+
+test("Google task deletion uses DELETE with no body and explicit account ownership", async () => {
+  const calls = [];
+  const api = createTasksApi(
+    async (...args) => {
+      calls.push(args);
+      return {};
+    },
+    () => "other-owner",
+  );
+  await api.deleteTask("list", "task/id", "selected-owner");
+  assert.equal(calls[0][0], "DELETE");
+  assert.match(calls[0][1], /\/tasks\/task%2Fid$/);
+  assert.equal(calls[0][2], undefined);
+  assert.equal(calls[0][3], "selected-owner");
+});
+
+test("Google task pagination retains completed/hidden tasks and filters deleted rows", async () => {
+  const calls = [];
+  let owner = "original-owner";
+  const api = createTasksApi(
+    async (...args) => {
+      calls.push(args);
+      owner = "different-owner";
+      return calls.length === 1
+        ? { items: [{ id: "one" }, { id: "deleted", deleted: true }], nextPageToken: "second" }
+        : { items: [{ id: "two", status: "completed" }] };
+    },
+    () => owner,
+  );
+  assert.deepEqual(
+    (await api.tasks("list")).items.map((t) => t.id),
+    ["one", "two"],
+  );
+  assert.equal(calls[1][3], "original-owner");
+  const params = new URL(calls[1][1]).searchParams;
+  assert.equal(params.get("pageToken"), "second");
+  assert.equal(params.get("showCompleted"), "true");
+  assert.equal(params.get("showHidden"), "true");
+});
+
+test("Google task pagination fails safely if Google repeats a page token", async () => {
+  const api = createTasksApi(
+    async () => ({ items: [], nextPageToken: "repeat" }),
+    () => "owner",
+  );
+  await assert.rejects(api.tasks("list"), /GOOGLE_API_ERROR/);
+});
+
+test("legacy mind-map topics survive normalization and invalid links cannot create cycles", () => {
+  const original = [
+    { id: "a", text: "موضوع" },
+    { id: "b", text: "Keep", parentId: "missing" },
+  ];
+  const result = normalizeMindNodes(original);
+  assert.deepEqual(result, [
+    { id: "a", text: "موضوع", parentId: null },
+    { id: "b", text: "Keep", parentId: null },
+  ]);
+  assert.equal(original[0].parentId, undefined);
+  const repaired = normalizeMindNodes([
+    { id: "a", text: "A", parentId: "b" },
+    { id: "b", text: "B", parentId: "a" },
+    { id: "a", text: "duplicate" },
+    null,
+  ]);
+  assert.equal(repaired.length, 2);
+  assert.equal(layoutMindmap("Root", repaired).topics.length, 3);
+});
+
+test("mind map renders all branches and subbranches with non-overlapping connected topics", () => {
+  const nodes = normalizeMindNodes(
+    Array.from({ length: 40 }, (_, index) => ({
+      id: String(index),
+      text: `Topic ${index}`,
+      parentId: index >= 8 ? String(index % 8) : null,
+    })),
+  );
+  const graph = layoutMindmap("Main topic", nodes);
+  assert.equal(graph.topics.length, nodes.length + 1);
+  assert.equal(graph.edges.length, nodes.length);
+  const root = graph.topics.find((node) => node.id === null);
+  assert.ok(graph.topics.some((node) => node.x < root.x));
+  assert.ok(graph.topics.some((node) => node.x > root.x));
+  for (const topic of graph.topics) {
+    assert.ok(topic.x >= 0 && topic.y >= 0);
+    assert.ok(topic.x + topic.width <= graph.width && topic.y + topic.height <= graph.height);
+    for (const other of graph.topics) {
+      if (other === topic) continue;
+      assert.ok(
+        topic.x + topic.width <= other.x ||
+          other.x + other.width <= topic.x ||
+          topic.y + topic.height <= other.y ||
+          other.y + other.height <= topic.y,
+        `${topic.id} overlaps ${other.id}`,
+      );
+    }
+  }
+  for (const edge of graph.edges) assert.doesNotMatch(edge.path, /NaN|Infinity/);
+  assert.equal(layoutMindmap("Empty", []).topics.length, 1);
+});
+
+test("deleting a mind-map topic preserves and reconnects its children", () => {
+  const nodes = normalizeMindNodes([
+    { id: "a", text: "A" },
+    { id: "b", text: "B", parentId: "a" },
+    { id: "c", text: "C", parentId: "b" },
+  ]);
+  const result = removeMindNode(nodes, "b");
+  assert.deepEqual(
+    result.map((node) => [node.id, node.parentId]),
+    [
+      ["a", null],
+      ["c", "a"],
+    ],
+  );
+  assert.equal(nodes.length, 3);
+  assert.equal(removeMindNode(nodes, "a").find((node) => node.id === "b").parentId, null);
+});
+
+test("deep mind-map trees do not overflow the JS call stack", () => {
+  const nodes = normalizeMindNodes(
+    Array.from({ length: 2000 }, (_, i) => ({
+      id: String(i),
+      text: "Deep",
+      parentId: i ? String(i - 1) : null,
+    })).reverse(),
+  );
+  const graph = layoutMindmap("Root", nodes);
+  assert.equal(graph.topics.length, 2001);
+  assert.ok(Number.isFinite(graph.width));
+});
+
+test("visible resize grips are removed without removing southeast resize targets", () => {
+  const card = readFileSync(
+    new URL("../src/features/widget/canvas-card.tsx", import.meta.url),
+    "utf8",
+  );
+  const window = readFileSync(
+    new URL("../src/features/widget/window-resize-handles.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.doesNotMatch(card, /resize-handle/);
+  assert.doesNotMatch(window, /window-resize-corner|<svg/);
+  assert.match(card, /card-resize-SouthEast/);
+  assert.match(window, /window-resize-SouthEast/);
+});
 
 test("tray controls include native windows that host live child webviews", () => {
   const native = readFileSync(new URL("../src-tauri/src/tray.rs", import.meta.url), "utf8");

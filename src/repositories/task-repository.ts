@@ -66,6 +66,13 @@ export const taskRepository = {
       [listId, taskId, calendarEventId, Date.now(), id],
     );
   },
+  async updateDetails(id: string, values: { title: string; description: string; dueDate: string }) {
+    const database = await getNativeDatabase();
+    await database.execute(
+      "UPDATE widget_tasks SET title=$1, description=$2, due_date=$3, updated_at=$4 WHERE id=$5 AND google_task_id IS NULL",
+      [values.title.trim(), values.description, values.dueDate || null, Date.now(), id],
+    );
+  },
   async setCompleted(
     id: string,
     completed: boolean,

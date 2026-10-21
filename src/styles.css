@@ -356,9 +356,6 @@ html.canvas-gesturing[data-canvas-action="resize"] * {
   .section-content {
     @apply min-h-0 min-w-0 flex-1 overflow-y-auto;
   }
-  .resize-handle {
-    @apply absolute bottom-0 right-0 z-30 flex cursor-nwse-resize touch-none items-center justify-center rounded-tl-lg bg-[#292b32] text-zinc-400 transition-colors hover:bg-blue-500/20 hover:text-blue-300;
-  }
   .window-resize-edge {
     position: absolute;
     z-index: 90;
@@ -384,7 +381,6 @@ html.canvas-gesturing[data-canvas-action="resize"] * {
   }
   .card-resize-South {
     bottom: 0;
-    right: calc(var(--resize-corner) * 1.75);
   }
   .card-resize-West,
   .card-resize-East {
@@ -398,7 +394,6 @@ html.canvas-gesturing[data-canvas-action="resize"] * {
   }
   .card-resize-East {
     right: 0;
-    bottom: calc(var(--resize-corner) * 1.75);
   }
   .card-resize-NorthWest,
   .card-resize-NorthEast,
@@ -451,7 +446,14 @@ html.canvas-gesturing[data-canvas-action="resize"] * {
     right: 0;
     bottom: 0;
     cursor: nwse-resize;
-    background: #292b32;
+    clip-path: polygon(
+      100% 0,
+      100% 100%,
+      0 100%,
+      0 calc(100% - var(--resize-edge)),
+      calc(100% - var(--resize-edge)) calc(100% - var(--resize-edge)),
+      calc(100% - var(--resize-edge)) 0
+    );
   }
   .window-resize-North {
     top: 0;
@@ -463,14 +465,14 @@ html.canvas-gesturing[data-canvas-action="resize"] * {
   .window-resize-South {
     bottom: 0;
     left: 16px;
-    right: 28px;
+    right: 20px;
     height: 8px;
     cursor: ns-resize;
   }
   .window-resize-East {
     right: 0;
     top: 16px;
-    bottom: 28px;
+    bottom: 20px;
     width: 8px;
     cursor: ew-resize;
   }
@@ -502,8 +504,12 @@ html.canvas-gesturing[data-canvas-action="resize"] * {
     height: 20px;
     cursor: nesw-resize;
   }
-  .window-resize-corner {
-    @apply absolute bottom-0 right-0 z-[90] grid size-7 cursor-nwse-resize touch-none place-items-center rounded-tl-lg bg-[#25272d] text-zinc-400 hover:bg-blue-500/20 hover:text-blue-300;
+  .window-resize-SouthEast {
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    cursor: nwse-resize;
   }
   .connection-layer {
     @apply pointer-events-none absolute inset-0 z-0 h-full w-full overflow-visible;
@@ -570,24 +576,121 @@ html.canvas-gesturing[data-canvas-action="resize"] * {
   .task-check.done {
     @apply border-emerald-400 bg-emerald-400;
   }
+  .task-day-group > h4 {
+    @apply flex items-center justify-between gap-2 border-y border-white/[.04] bg-white/[.025] px-3 py-2 text-[10px] font-medium text-zinc-400;
+  }
+  .task-day-group > h4 > span {
+    @apply shrink-0 text-zinc-500;
+  }
+  .task-summary {
+    @apply min-w-0 flex-1 text-left text-[11px] leading-relaxed;
+    overflow-wrap: anywhere;
+  }
+  .task-summary > span {
+    @apply block;
+  }
+  .task-summary:focus-visible {
+    @apply rounded outline outline-1 outline-blue-400;
+  }
+  .task-detail-editor {
+    @apply mx-2 mb-3 grid min-w-0 gap-3 rounded-xl border border-white/[.07] bg-black/10 p-3;
+  }
+  .task-detail-editor label {
+    @apply grid min-w-0 gap-1.5 text-[10px] text-zinc-400;
+  }
+  .task-detail-editor .field {
+    @apply w-full min-w-0 text-[11px];
+  }
+  .task-detail-editor textarea {
+    @apply min-h-28 resize-y whitespace-pre-wrap;
+  }
+  .task-detail-status {
+    @apply text-[9px] leading-relaxed text-zinc-500;
+  }
+  .task-editor-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .task-editor-actions button {
+    @apply inline-flex min-h-8 items-center justify-center gap-1 rounded-lg border border-white/[.06] px-2.5 py-1 text-[10px] text-zinc-400 disabled:opacity-40;
+  }
+  .task-editor-actions .task-save {
+    @apply bg-blue-500/15 text-blue-300;
+  }
+  .task-editor-actions .task-danger {
+    @apply text-rose-300;
+  }
+  .task-delete-confirm {
+    @apply grid gap-2 rounded-lg bg-rose-500/10 p-2 text-[10px] leading-relaxed text-rose-200;
+  }
+  .task-inline-error {
+    @apply text-[10px] leading-relaxed text-rose-300;
+  }
 
   .mindmap {
-    @apply p-3;
+    @apply flex h-full min-h-0 flex-col overflow-hidden;
   }
-  .mind-center {
-    @apply mx-auto block w-3/4 rounded-2xl border border-violet-400/25 bg-violet-500/10 px-3 py-2 text-center text-[11px] text-violet-200 outline-none focus:border-violet-400/60;
+  .mind-toolbar {
+    @apply flex shrink-0 flex-wrap items-center gap-0.5 border-b border-white/[.05] px-2 py-1;
   }
-  .mind-nodes {
-    @apply relative my-4 grid grid-cols-2 gap-2 before:absolute before:bottom-0 before:left-1/2 before:top-0 before:w-px before:bg-violet-400/15;
+  .mind-toolbar button {
+    @apply flex h-7 min-w-7 items-center justify-center gap-1 rounded-md px-1 text-[10px] text-zinc-400 hover:bg-white/[.06] hover:text-violet-200 disabled:cursor-default disabled:opacity-25;
   }
-  .mind-node {
-    @apply relative z-10 flex items-center rounded-xl border border-white/[.06] bg-[#202126] px-2;
+  .mind-toolbar-space {
+    flex: 1;
   }
-  .mind-node input {
-    @apply min-w-0 flex-1 bg-transparent py-2 text-[10px] text-zinc-300 outline-none;
+  .mind-toolbar .mind-add {
+    padding-inline: 6px;
   }
-  .mind-node button {
-    @apply text-zinc-700 hover:text-red-300;
+  .mind-toolbar .mind-zoom {
+    min-width: 38px;
+    font-size: 9px;
+  }
+  .mind-viewport {
+    @apply relative min-h-20 flex-1 touch-none overflow-hidden;
+    cursor: grab;
+    background-image: radial-gradient(circle, #ffffff0c 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+  .mind-viewport.is-panning {
+    cursor: grabbing;
+    user-select: none;
+  }
+  .mind-plane {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: 0 0;
+  }
+  .mind-edges {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: visible;
+  }
+  .mind-edges path {
+    fill: none;
+    stroke: #a78bfa80;
+    stroke-width: 2;
+  }
+  .mind-topic {
+    @apply absolute rounded-xl border border-violet-400/25 bg-[#282633] px-3 text-center text-xs text-zinc-200 outline-none;
+    cursor: text;
+    text-overflow: ellipsis;
+  }
+  .mind-topic-root {
+    background: #3d3159;
+    border-color: #a78bfa88;
+    font-weight: 600;
+  }
+  .mind-topic[data-selected="true"] {
+    border-color: #c4b5fd;
+    box-shadow: 0 0 0 2px #a78bfa20;
+  }
+  .mind-topic::placeholder {
+    color: #a1a1aa;
+  }
+  .mind-hint {
+    @apply pointer-events-none m-0 shrink-0 px-2 py-1 text-center text-[8px] leading-3 text-zinc-600;
   }
   .image-section {
     @apply p-3;
@@ -883,10 +986,10 @@ html.canvas-gesturing[data-canvas-action="resize"] * {
   .local-tasks-details summary {
     @apply cursor-pointer;
   }
-  .local-tasks form {
+  .local-tasks > form {
     @apply my-3 flex items-center gap-2;
   }
-  .local-tasks form input {
+  .local-tasks > form input {
     @apply h-9 min-w-0;
   }
 }

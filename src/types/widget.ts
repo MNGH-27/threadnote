@@ -69,6 +69,9 @@ export interface GoogleTask {
   due?: string;
   status?: string;
   updated?: string;
+  deleted?: boolean;
+  parent?: string;
+  assignmentInfo?: { surfaceType?: string };
 }
 export interface GoogleCalendar {
   id: string;

@@ -12,13 +12,13 @@ Every window starts as a note. Add the sections you need, arrange them on a pann
 
 ## Download and install
 
-### [⬇ Download for Windows · v0.1.4 preview · x64](https://github.com/MNGH-27/threadnote/releases/download/v0.1.4/Threadnote-0.1.4-Windows-x64-Setup.exe)
+### [⬇ Download for Windows · v0.1.5 preview · x64](https://github.com/MNGH-27/threadnote/releases/download/v0.1.5/Threadnote-0.1.5-Windows-x64-Setup.exe)
 
 **Windows 10 / 11 (64-bit) · Setup installer · approximately 5.4 MiB**
 
-[Release notes](https://github.com/MNGH-27/threadnote/releases/tag/v0.1.4) · [SHA-256 checksums](https://github.com/MNGH-27/threadnote/releases/download/v0.1.4/SHA256SUMS.txt) · [All downloads](https://github.com/MNGH-27/threadnote/releases)
+[Release notes](https://github.com/MNGH-27/threadnote/releases/tag/v0.1.5) · [SHA-256 checksums](https://github.com/MNGH-27/threadnote/releases/download/v0.1.5/SHA256SUMS.txt) · [All downloads](https://github.com/MNGH-27/threadnote/releases)
 
-1. Download **Threadnote-0.1.4-Windows-x64-Setup.exe** above—not the source-code ZIP.
+1. Download **Threadnote-0.1.5-Windows-x64-Setup.exe** above—not the source-code ZIP.
 2. Run the installer, then open **Threadnote** from the Start menu. No Node.js, Rust, API keys, or developer tools are needed.
 3. Hover near the top of a note to reveal its controls. Add sections to that note, or use **+** in the window controls to create another independent note.
 4. Open **Settings** if you want to connect Google or change launch-at-startup behavior. Local notes work without signing in.
@@ -27,7 +27,7 @@ Before updating, use **Save and quit** from the tray menu. Microsoft WebView2 is
 
 > **Preview status:** The installer is unsigned, so Windows may show an unknown-publisher warning. Check the download source before running it; a checksum checks file integrity, not publisher identity. Google access depends on the publisher's API configuration, consent, and applicable verification; this is not a Google-verified unrestricted public release.
 
-The latest published download is **0.1.4**, which fixes tray controls when a live website is open. Version **0.1.5** is being prepared separately and has not yet been published to GitHub. See [0.1.4 changes](docs/changes-0.1.4.md).
+The latest preview is **0.1.5**: open and edit task details, delete with confirmation, group tasks by day, and build nested mind maps. Visible resize grips are gone; resizing still works from all edges and corners. See [0.1.5 changes](docs/changes-0.1.5.md).
 
 ## Build a workspace around your ideas
 
@@ -44,8 +44,8 @@ The latest published download is **0.1.4**, which fixes tray controls when a liv
 | Section         | What it does                                                                                                                                           |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Text note       | Capture ideas and add extra text cards anywhere on the canvas.                                                                                         |
-| Tasks           | Keep local tasks, or view Google task lists and create or complete Google tasks.                                                                       |
-| Mind map        | Organize related ideas inside a mind-map card.                                                                                                         |
+| Tasks           | Create, view, edit, complete and delete local or Google tasks; organize them by date, with a separate No date group.                                   |
+| Mind map        | Build nested branches with curved connections, pan and zoom, and use Fit map to see the whole tree.                                                    |
 | Image           | Keep visual references inside a note; images are stored locally, up to 5 MB each.                                                                      |
 | Live website    | Browse an HTTP/HTTPS site in an isolated native child WebView rather than an iframe. Site availability and sign-in restrictions still apply.           |
 | Gmail           | Read messages inside the widget or open them in Gmail. HTML-only messages have a safe preview and external-view fallback. No sending or deleting mail. |

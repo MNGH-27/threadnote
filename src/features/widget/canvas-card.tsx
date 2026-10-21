@@ -200,35 +200,17 @@ export function CanvasCard(props: CardProps) {
             key={direction}
             type="button"
             tabIndex={-1}
-            className={`card-resize-edge ${resizeClasses[direction]} ${direction === "SouthEast" ? "resize-handle" : ""}`}
+            className={`card-resize-edge ${resizeClasses[direction]}`}
             style={
               {
                 "--resize-edge": `${6 / zoom}px`,
                 "--resize-corner": `${16 / zoom}px`,
-                ...(direction === "SouthEast" ? { width: 28 / zoom, height: 28 / zoom } : {}),
               } as CSSProperties
             }
             onPointerDown={(event) => start(event, "resize", direction)}
             aria-label={`Resize card ${direction}`}
             title={`Drag to resize ${direction}`}
-          >
-            {direction === "SouthEast" && (
-              <svg
-                width={16 / zoom}
-                height={16 / zoom}
-                viewBox="0 0 16 16"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M4 12 12 4M8 12l4-4M12 12h.01"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                  strokeLinecap="round"
-                />
-              </svg>
-            )}
-          </button>
+          />
         ))}
     </article>
   );

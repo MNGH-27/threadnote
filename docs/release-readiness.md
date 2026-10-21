@@ -34,7 +34,7 @@ npm run tauri build -- --debug --no-bundle
 - [ ] Review all files to be published. Exclude OAuth JSON, environment files, local databases, images, account data, build output and private logs.
 - [ ] Complete Google API enablement, External audience/production configuration and the applicable scope/brand verification. Published policy pages do not perform these steps.
 - [ ] Test two different Google accounts, partial consent, cancellation, expired grants and revocation, offline recovery and disconnected views.
-- [ ] Test many task lists, HTML-only messages, secondary calendars and account switching while requests are in flight. Current lists are bounded to a single API page; pagination remains a product limitation to resolve or document before a broad release.
+- [ ] Test many task lists, HTML-only messages, secondary calendars and account switching while requests are in flight. Google Tasks items are paginated in 0.1.5; task-list selection, Gmail results and Calendar results remain bounded and need broader coverage before an unrestricted release.
 - [ ] Test multiple note windows: type then immediately close/quit, reopen, resize, pan/zoom, fullscreen, delete/cancel and native website layering. Include Windows sign-in and different DPI/multi-monitor layouts.
 - [ ] Test disk/database errors and confirm Quit app does not exit after a failed flush.
 - [ ] Build the release installer, sign it and test on a clean Windows machine without development tools. A debug executable is not a signed release installer.

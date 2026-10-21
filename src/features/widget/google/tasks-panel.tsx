@@ -2,14 +2,8 @@ import { Check, LoaderCircle, Plus, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { google, googleError } from "@/services/google";
 import type { GoogleTask, GoogleTaskList } from "@/types/widget";
-import {
-  Gate,
-  ErrorMessage,
-  EmptyMessage,
-  useRefresh,
-  dateLabel,
-  type AccountProps,
-} from "./panel-shared";
+import { TaskList, type TaskItem, type TaskValues } from "../sections/task-list";
+import { Gate, ErrorMessage, EmptyMessage, useRefresh, type AccountProps } from "./panel-shared";
 
 export function GoogleTasksSection(props: AccountProps) {
   return (
@@ -17,11 +11,12 @@ export function GoogleTasksSection(props: AccountProps) {
       <RemoteTasks
         key={props.status?.accountId ?? "disconnected"}
         email={props.status?.email ?? ""}
+        accountId={props.status?.accountId ?? ""}
       />
     </Gate>
   );
 }
-function RemoteTasks({ email }: { email: string }) {
+export function RemoteTasks({ email, accountId }: { email: string; accountId: string }) {
   const [lists, setLists] = useState<GoogleTaskList[]>([]);
   const [listId, setListId] = useState("");
   const [tasks, setTasks] = useState<GoogleTask[]>([]);
@@ -36,14 +31,17 @@ function RemoteTasks({ email }: { email: string }) {
   useEffect(() => {
     let live = true;
     void google
-      .taskLists()
+      .taskLists(accountId)
       .then((items) => {
         if (live) {
           setLists(items);
           setListId((previous) =>
             items.some((item) => item.id === previous) ? previous : (items[0]?.id ?? ""),
           );
-          if (!items.length) setBusy(false);
+          if (!items.length) {
+            setTasks([]);
+            setBusy(false);
+          }
         }
       })
       .catch((reason) => {
@@ -55,15 +53,14 @@ function RemoteTasks({ email }: { email: string }) {
     return () => {
       live = false;
     };
-  }, [revision]);
+  }, [revision, accountId]);
   useEffect(() => {
     if (!listId) return;
     let live = true;
     setBusy(true);
     setError("");
-    setTasks([]);
     void google
-      .tasks(listId)
+      .tasks(listId, accountId)
       .then((value) => {
         if (live) setTasks(value.items ?? []);
       })
@@ -76,13 +73,13 @@ function RemoteTasks({ email }: { email: string }) {
     return () => {
       live = false;
     };
-  }, [listId, revision]);
+  }, [listId, revision, accountId]);
   const create = async () => {
-    if (!title.trim() || saving || !listId) return;
+    if (!title.trim() || saving || busy || !listId) return;
     setSaving(true);
     setError("");
     try {
-      await google.addTask(listId, { title: title.trim(), description, dueDate });
+      await google.addTask(listId, { title: title.trim(), description, dueDate }, accountId);
       setTitle("");
       setDescription("");
       setDueDate("");
@@ -95,11 +92,11 @@ function RemoteTasks({ email }: { email: string }) {
     }
   };
   const toggle = async (task: GoogleTask) => {
-    if (saving) return;
+    if (saving || busy) return;
     setSaving(true);
     setError("");
     try {
-      await google.completeRemoteTask(listId, task);
+      await google.completeRemoteTask(listId, task, accountId);
       refresh();
     } catch (reason) {
       setError(googleError(reason));
@@ -107,13 +104,56 @@ function RemoteTasks({ email }: { email: string }) {
       setSaving(false);
     }
   };
+  const mutate = async (operation: () => Promise<unknown>) => {
+    if (saving || busy) throw new Error("Task operation already in progress");
+    setSaving(true);
+    setError("");
+    try {
+      await operation();
+      refresh();
+    } catch (reason) {
+      setError(googleError(reason));
+      throw reason;
+    } finally {
+      setSaving(false);
+    }
+  };
+  const update = (item: TaskItem, values: TaskValues) =>
+    mutate(async () => {
+      const task = tasks.find((task) => task.id === item.id)!;
+      const updated = await google.updateTask(listId, task, values, accountId);
+      setTasks((items) => items.map((value) => (value.id === item.id ? updated : value)));
+    });
+  const remove = (item: TaskItem) =>
+    mutate(async () => {
+      await google.deleteTask(listId, item.id, accountId);
+      // Hide the confirmed deletion and known descendants; retain other rows if refresh fails.
+      setTasks((items) => {
+        const removed = new Set([item.id]);
+        let changed = true;
+        while (changed) {
+          changed = false;
+          for (const task of items) {
+            if (task.parent && removed.has(task.parent) && !removed.has(task.id)) {
+              removed.add(task.id);
+              changed = true;
+            }
+          }
+        }
+        return items.filter((task) => !removed.has(task.id));
+      });
+    });
   return (
     <div className="google-data-panel" dir="ltr">
       <div className="google-panel-heading">
         <select
           aria-label="Choose Google Tasks list"
           value={listId}
-          onChange={(event) => setListId(event.target.value)}
+          disabled={saving || busy}
+          onChange={(event) => {
+            setTasks([]);
+            setListId(event.target.value);
+          }}
         >
           {lists.map((list) => (
             <option key={list.id} value={list.id}>
@@ -121,7 +161,12 @@ function RemoteTasks({ email }: { email: string }) {
             </option>
           ))}
         </select>
-        <button className="section-action" title="Refresh tasks" onClick={refresh}>
+        <button
+          className="section-action"
+          title="Refresh tasks"
+          disabled={saving || busy}
+          onClick={refresh}
+        >
           <RefreshCw size={13} className={busy ? "animate-spin" : ""} />
         </button>
       </div>
@@ -143,13 +188,14 @@ function RemoteTasks({ email }: { email: string }) {
             aria-label="Google task title"
             placeholder="New Google task…"
             value={title}
+            maxLength={1024}
             onFocus={() => setExpanded(true)}
             onChange={(event) => setTitle(event.target.value)}
           />
           <button
             className="icon-button accent"
             type="submit"
-            disabled={saving || !title.trim() || !listId}
+            disabled={saving || busy || !title.trim() || !listId}
           >
             {saving ? <LoaderCircle className="animate-spin" size={14} /> : <Plus size={15} />}
           </button>
@@ -160,6 +206,8 @@ function RemoteTasks({ email }: { email: string }) {
               dir="auto"
               className="field"
               placeholder="Task details"
+              aria-label="New task details"
+              maxLength={8192}
               value={description}
               onChange={(event) => setDescription(event.target.value)}
             />
@@ -169,34 +217,33 @@ function RemoteTasks({ email }: { email: string }) {
               aria-label="Due date"
               type="date"
               value={dueDate}
+              onInput={(event) => setDueDate(event.currentTarget.value)}
               onChange={(event) => setDueDate(event.target.value)}
             />
           </>
         )}
       </form>
-      {tasks.map((task) => (
-        <div key={task.id} className="compact-task">
-          <button
-            aria-label={task.status === "completed" ? "Mark incomplete" : "Mark complete"}
-            disabled={saving}
-            className={`task-check ${task.status === "completed" ? "done" : ""}`}
-            onClick={() => void toggle(task)}
-          >
-            {task.status === "completed" && <Check size={11} />}
-          </button>
-          <div className="min-w-0 flex-1">
-            <p
-              className={
-                task.status === "completed" ? "line-through text-zinc-600" : "text-zinc-300"
-              }
-            >
-              {task.title || "Untitled"}
-            </p>
-            {task.notes && <small>{task.notes}</small>}
-            {task.due && <small>{dateLabel(task.due, false)}</small>}
-          </div>
-        </div>
-      ))}
+      <TaskList
+        key={listId}
+        remote
+        busy={saving || busy}
+        tasks={tasks.map((task) => ({
+          id: task.id,
+          title: task.title ?? "Untitled",
+          description: task.notes ?? "",
+          dueDate: task.due ?? "",
+          completed: task.status === "completed",
+          updated: task.updated,
+          assigned: Boolean(task.assignmentInfo),
+          notesReadOnly: task.assignmentInfo?.surfaceType === "DOCUMENT",
+        }))}
+        onSave={update}
+        onDelete={remove}
+        onToggle={async (item) => {
+          const task = tasks.find((value) => value.id === item.id);
+          if (task) await toggle(task);
+        }}
+      />
       {!tasks.length &&
         (busy ? (
           <div className="google-loading">

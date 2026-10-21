@@ -23,11 +23,16 @@ for (const direction of directions) {
     new RegExp(`\\.card-resize-${direction}\\b`),
     `Missing card resize CSS: ${direction}`,
   );
-  const selector =
-    direction === "SouthEast" ? "window-resize-corner" : `window-resize-${direction}`;
+  const selector = `window-resize-${direction}`;
   assert.match(css, new RegExp(`\\.${selector}\\b`), `Missing window resize CSS: ${direction}`);
 }
 assert.match(css, /clip-path:polygon/, "Resize corners must not cover header controls");
+assert.doesNotMatch(
+  css,
+  /\.resize-handle\b|\.window-resize-corner\b/,
+  "Visible resize grips must not return",
+);
+assert.match(css, /\.mind-edges\b/, "Connected mind-map geometry must retain its CSS");
 console.log(
   "PASS: production CSS retains every card/window resize direction and clipped corner hit areas.",
 );

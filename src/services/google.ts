@@ -1,15 +1,9 @@
 export { googleError } from "./google/errors";
+import { createTasksApi } from "./google/tasks-api";
 import { plainMail, header, type GmailDetail, type GmailList } from "./google/mail-parser";
 import { invoke } from "@tauri-apps/api/core";
 import { createSingleFlight } from "@/lib/single-flight";
-import type {
-  CalendarItem,
-  GoogleAuthStatus,
-  GoogleCalendar,
-  GoogleTask,
-  GoogleTaskList,
-  MailMessage,
-} from "@/types/widget";
+import type { CalendarItem, GoogleAuthStatus, GoogleCalendar, MailMessage } from "@/types/widget";
 
 let activeAccountId: string | null = null;
 const reads = createSingleFlight();
@@ -132,58 +126,7 @@ export const google = {
     return { body: plainMail(detail.payload), snippet: detail.snippet ?? "" };
   },
 
-  async taskLists(accountId = activeAccountId) {
-    const result = await request<{ items?: GoogleTaskList[] }>(
-      "GET",
-      "https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=100",
-      undefined,
-      accountId,
-    );
-    return result.items ?? [];
-  },
-
-  async tasks(listId: string, accountId = activeAccountId) {
-    const params = new URLSearchParams({
-      maxResults: "100",
-      showCompleted: "true",
-      showHidden: "true",
-    });
-    return request<{ items?: GoogleTask[] }>(
-      "GET",
-      `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(listId)}/tasks?${params}`,
-      undefined,
-      accountId,
-    );
-  },
-
-  addTask(
-    listId: string,
-    values: { title: string; description: string; dueDate: string },
-    accountId = activeAccountId,
-  ) {
-    return request<GoogleTask>(
-      "POST",
-      `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(listId)}/tasks`,
-      {
-        title: values.title,
-        notes: values.description,
-        ...(values.dueDate ? { due: `${values.dueDate}T00:00:00.000Z` } : {}),
-      },
-      accountId,
-    );
-  },
-
-  completeRemoteTask(listId: string, task: GoogleTask, accountId = activeAccountId) {
-    return request(
-      "PATCH",
-      `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(listId)}/tasks/${encodeURIComponent(task.id)}`,
-      {
-        status: task.status === "completed" ? "needsAction" : "completed",
-        ...(task.status === "completed" ? { completed: null } : {}),
-      },
-      accountId,
-    );
-  },
+  ...createTasksApi(request, () => activeAccountId),
 
   async calendars(accountId = activeAccountId): Promise<GoogleCalendar[]> {
     const result = await request<{
