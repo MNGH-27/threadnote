@@ -25,6 +25,21 @@ const { createSingleFlight } = await loadTypescript("../src/lib/single-flight.ts
 const { reconcileAutostart } = await loadTypescript("../src/lib/autostart.ts");
 const { createTrayActionHandler } = await loadTypescript("../src/lib/tray-actions.ts");
 
+test("tray controls include native windows that host live child webviews", () => {
+  const native = readFileSync(new URL("../src-tauri/src/tray.rs", import.meta.url), "utf8");
+  // Tauri get_webview_window/webview_windows filter out multi-webview hosts.
+  // Guard the actual integration calls, not just the label-filter helper.
+  assert.doesNotMatch(native, /\.(get_webview_window|webview_windows)\(/);
+  assert.match(native, /app\.windows\(\)/);
+  assert.match(native, /app\.get_window\("widget"\)/);
+  assert.match(native, /tray_frontend_ready\(window: Window/);
+  const lifecycle = readFileSync(
+    new URL("../src/services/workspace-lifecycle.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(lifecycle, /await getAllWindows\(\)/);
+});
+
 test("tray routes commands, serializes quit, and allows retry after a failed save", async () => {
   const calls = [];
   const errors = [];

@@ -3,7 +3,7 @@
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Emitter, Manager, WebviewWindow, Wry,
+    AppHandle, Emitter, Manager, Window, Wry,
 };
 use tauri_plugin_autostart::ManagerExt;
 
@@ -13,13 +13,15 @@ struct TrayState {
 }
 
 pub(crate) fn show_notes(app: &AppHandle) {
-    for (label, window) in app.webview_windows() {
+    // A live website turns its host into a multi-webview Window. WebviewWindow
+    // lookups deliberately exclude it, even though the native window still exists.
+    for (label, window) in app.windows() {
         if is_note(&label) {
             let _ = window.unminimize();
             let _ = window.show();
         }
     }
-    if let Some(window) = app.get_webview_window("widget") {
+    if let Some(window) = app.get_window("widget") {
         let _ = window.set_focus();
     }
 }
@@ -29,7 +31,7 @@ fn is_note(label: &str) -> bool {
 }
 
 fn action(app: &AppHandle, name: &str) {
-    if let Some(window) = app.get_webview_window("widget") {
+    if let Some(window) = app.get_window("widget") {
         // Make errors and settings visible, including when the main note was hidden.
         let _ = window.unminimize();
         let _ = window.show();
@@ -39,7 +41,7 @@ fn action(app: &AppHandle, name: &str) {
 }
 
 #[tauri::command]
-pub(crate) fn tray_frontend_ready(window: WebviewWindow, app: AppHandle) -> Result<(), String> {
+pub(crate) fn tray_frontend_ready(window: Window, app: AppHandle) -> Result<(), String> {
     if window.label() != "widget" {
         return Err("Only the main note handles tray actions".into());
     }
@@ -103,7 +105,7 @@ pub(crate) fn setup(app: &AppHandle) -> tauri::Result<()> {
         .on_menu_event(|app, event| match event.id.as_ref() {
             "tray-show" => show_notes(app),
             "tray-hide" => {
-                for (label, window) in app.webview_windows() {
+                for (label, window) in app.windows() {
                     if is_note(&label) {
                         let _ = window.hide();
                     }

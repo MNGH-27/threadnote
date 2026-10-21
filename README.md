@@ -4,7 +4,9 @@ Threadnote is a local-first Windows note widget. Every window is the same flexib
 
 ## Download for Windows
 
-[Download Threadnote 0.1.3 for Windows x64](https://github.com/MNGH-27/threadnote/releases/download/v0.1.3/Threadnote-0.1.3-Windows-x64-Setup.exe). This is an **unsigned preview**, not a Google-verified unrestricted public release. Local notes work without Google sign-in. See [release notes and checksums](https://github.com/MNGH-27/threadnote/releases/tag/v0.1.3).
+[Download Threadnote 0.1.4 for Windows x64](https://github.com/MNGH-27/threadnote/releases/download/v0.1.4/Threadnote-0.1.4-Windows-x64-Setup.exe). This is an **unsigned preview**, not a Google-verified unrestricted public release. Local notes work without Google sign-in. See [release notes and checksums](https://github.com/MNGH-27/threadnote/releases/tag/v0.1.4) or browse [all releases](https://github.com/MNGH-27/threadnote/releases).
+
+Version 0.1.4 fixes Show/Hide notes, Settings and Save and quit when a live website is open. See [the fix details](docs/changes-0.1.4.md).
 
 While running, Threadnote has an icon in the Windows notification area (possibly under the hidden-icons arrow). Left-click shows notes; right-click offers Show/Hide notes, New note, Settings, Launch at Windows startup, and Save and quit. Closing a note does not quit the app.
 

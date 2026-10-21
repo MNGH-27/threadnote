@@ -1,8 +1,7 @@
 import { flushBeforeShutdown, type FlushResult } from "@/lib/workspace-shutdown";
 import { invoke } from "@tauri-apps/api/core";
 import { emitTo, listen } from "@tauri-apps/api/event";
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { getAllWindows, getCurrentWindow } from "@tauri-apps/api/window";
 
 interface FlushRequest {
   requestId: string;
@@ -18,7 +17,7 @@ export function quitAfterSaving(): Promise<void> {
   return pendingQuit;
 }
 async function saveAndQuit() {
-  const windows = await WebviewWindow.getAll();
+  const windows = await getAllWindows();
   const requestId = crypto.randomUUID();
   const replyTo = getCurrentWindow().label;
   await flushBeforeShutdown({

@@ -1,6 +1,6 @@
 [package]
 name = "threadnote"
-version = "0.1.3"
+version = "0.1.4"
 description = "A desktop widget for Gmail, Google Tasks, Calendar, and notes"
 authors = ["Threadnote"]
 edition = "2021"

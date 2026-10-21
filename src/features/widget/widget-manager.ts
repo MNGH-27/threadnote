@@ -1,4 +1,5 @@
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { Window } from "@tauri-apps/api/window";
 
 export interface NoteWidgetInstance {
   id: string;
@@ -45,7 +46,7 @@ async function openInstance(instance: NoteWidgetInstance) {
 
 async function createInstance(instance: NoteWidgetInstance) {
   const label = `threadnote-widget-${instance.id}`;
-  if (await WebviewWindow.getByLabel(label)) return;
+  if (await Window.getByLabel(label)) return;
   const widget = new WebviewWindow(label, {
     url: `index.html?id=${encodeURIComponent(instance.id)}`,
     title: "Threadnote",
